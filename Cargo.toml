@@ -8,6 +8,7 @@ readme = "README.md"
 keywords = ["pathfinding", "game", "server", "gameserver", "navmesh"]
 categories = ["game-development", "algorithms", "data-structures"]
 license = "MIT"
+repository = "https://github.com/Abyssall-Dev/RePath"
 
 [dependencies]
 serde = { version = "1.0.203", features = ["derive"] }
