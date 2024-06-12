@@ -28,6 +28,9 @@ mod tests {
         let end_coords = (10.0, 10.0, 10.0);
 
         let path = pathfinder.find_path(start_coords, end_coords);
+
+        println!("{:?}", path);
+
         assert!(path.is_some());
     }
 }

@@ -50,7 +50,7 @@ impl Graph {
                 return result.clone();
             }
         }
-
+    
         let mut open_set_fwd = BinaryHeap::new();
         let mut open_set_bwd = BinaryHeap::new();
         let mut came_from_fwd: HashMap<usize, usize> = HashMap::new();
@@ -61,29 +61,35 @@ impl Graph {
         let mut f_score_bwd: HashMap<usize, f64> = HashMap::new();
         let mut closed_set_fwd = HashSet::new();
         let mut closed_set_bwd = HashSet::new();
-
+    
         for &node_id in self.nodes.keys() {
             g_score_fwd.insert(node_id, f64::INFINITY);
             g_score_bwd.insert(node_id, f64::INFINITY);
             f_score_fwd.insert(node_id, f64::INFINITY);
             f_score_bwd.insert(node_id, f64::INFINITY);
         }
-
+    
+        // Calculate the exact middle point
+        let middle_node = self.nearest_node((self.nodes[&start].x + self.nodes[&goal].x) / 2.0,
+                                            (self.nodes[&start].y + self.nodes[&goal].y) / 2.0,
+                                            (self.nodes[&start].z + self.nodes[&goal].z) / 2.0)
+                            .expect("No nodes in the graph");
+    
         g_score_fwd.insert(start, 0.0);
         g_score_bwd.insert(goal, 0.0);
-        f_score_fwd.insert(start, self.heuristic(start, goal));
-        f_score_bwd.insert(goal, self.heuristic(goal, start));
-
+        f_score_fwd.insert(start, self.heuristic(start, middle_node));
+        f_score_bwd.insert(goal, self.heuristic(goal, middle_node));
+    
         open_set_fwd.push(State {
             cost: 0.0,
             position: start,
         });
-
+    
         open_set_bwd.push(State {
             cost: 0.0,
             position: goal,
         });
-
+    
         while let (Some(State { cost: _cost_fwd, position: pos_fwd }), Some(State { cost: _cost_bwd, position: pos_bwd })) = (open_set_fwd.pop(), open_set_bwd.pop()) {
             if closed_set_fwd.contains(&pos_bwd) || closed_set_bwd.contains(&pos_fwd) {
                 // Path found
@@ -93,7 +99,7 @@ impl Graph {
                 let mut total_times_bwd = vec![0];
                 let mut current = pos_fwd;
                 let mut accumulated_time = 0.0;
-
+    
                 while let Some(&next) = came_from_fwd.get(&current) {
                     let travel_cost = self.edges.get(&next).unwrap()
                         .iter()
@@ -104,13 +110,13 @@ impl Graph {
                     total_path_fwd.push((self.nodes[&current], accumulated_time as u64));
                     current = next;
                 }
-
+    
                 total_path_fwd.push((self.nodes[&start], 0));
                 total_path_fwd.reverse();
-
+    
                 current = pos_bwd;
                 accumulated_time = 0.0;
-
+    
                 while let Some(&next) = came_from_bwd.get(&current) {
                     let travel_cost = self.edges.get(&next).unwrap()
                         .iter()
@@ -121,35 +127,35 @@ impl Graph {
                     total_path_bwd.push((self.nodes[&current], accumulated_time as u64));
                     current = next;
                 }
-
+    
                 total_path_bwd.push((self.nodes[&goal], 0));
-
+    
                 total_path_fwd.extend(total_path_bwd.iter().rev().cloned());
                 let result = Some(total_path_fwd.clone());
-
+    
                 // Cache the result
                 let mut cache = cache.lock().unwrap();
                 cache.put(cache_key, result.clone());
-
+    
                 // Also cache the inverted path
                 let inverted_path: Vec<(Node, u64)> = total_path_fwd.iter().rev().cloned().collect();
                 let inverted_cache_key = (goal, start);
                 cache.put(inverted_cache_key, Some(inverted_path));
-
+    
                 return result;
             }
-
+    
             closed_set_fwd.insert(pos_fwd);
             closed_set_bwd.insert(pos_bwd);
-
+    
             if let Some(neighbors) = self.edges.get(&pos_fwd) {
                 for edge in neighbors {
                     let tentative_g_score = g_score_fwd[&pos_fwd] + edge.cost;
-
+    
                     if tentative_g_score < *g_score_fwd.get(&edge.to).unwrap_or(&f64::INFINITY) {
                         came_from_fwd.insert(edge.to, pos_fwd);
                         g_score_fwd.insert(edge.to, tentative_g_score);
-                        f_score_fwd.insert(edge.to, tentative_g_score + self.heuristic(edge.to, goal));
+                        f_score_fwd.insert(edge.to, tentative_g_score + self.heuristic(edge.to, middle_node));
                         open_set_fwd.push(State {
                             cost: tentative_g_score,
                             position: edge.to,
@@ -157,15 +163,15 @@ impl Graph {
                     }
                 }
             }
-
+    
             if let Some(neighbors) = self.edges.get(&pos_bwd) {
                 for edge in neighbors {
                     let tentative_g_score = g_score_bwd[&pos_bwd] + edge.cost;
-
+    
                     if tentative_g_score < *g_score_bwd.get(&edge.to).unwrap_or(&f64::INFINITY) {
                         came_from_bwd.insert(edge.to, pos_bwd);
                         g_score_bwd.insert(edge.to, tentative_g_score);
-                        f_score_bwd.insert(edge.to, tentative_g_score + self.heuristic(edge.to, start));
+                        f_score_bwd.insert(edge.to, tentative_g_score + self.heuristic(edge.to, middle_node));
                         open_set_bwd.push(State {
                             cost: tentative_g_score,
                             position: edge.to,
@@ -174,15 +180,15 @@ impl Graph {
                 }
             }
         }
-
+    
         let result = None;
-
+    
         // Cache the result
         let mut cache = cache.lock().unwrap();
         cache.put(cache_key, result.clone());
-
+    
         result
-    }
+    }    
 
     pub fn nearest_node(&self, x: f64, y: f64, z: f64) -> Option<usize> {
         self.nodes.iter()

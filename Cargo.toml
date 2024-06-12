@@ -1,6 +1,6 @@
 [package]
 name = "repath"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2021"
 authors = ["Jaroslav Patočka <patockajaroslav@gmail.com>"]
 description = "A fast pathfinding library for game servers using A* and bidirectional search with caching."

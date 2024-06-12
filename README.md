@@ -2,7 +2,7 @@
 
 RePath is a fast and efficient pathfinding library specifically designed for MMO game servers. It leverages the A* algorithm and bidirectional search to provide rapid and precise pathfinding solutions, essential for managing large numbers of NPCs and players in real-time environments.
 
-RePath was developed for [Respark](https://playrespark.com/) an upcoming open world MMO shooter. Respark combines intense combat, strategic gameplay, and a vast, dynamic world to explore. Join our community on [Discord](https://discord.gg/8qzSGyekVJ) to stay updated with the latest news and development progress.
+RePath was developed for [Respark](https://playrespark.com/), an upcoming open world MMO shooter. Respark combines intense combat, strategic gameplay, and a vast, dynamic world to explore. Join our community on [Discord](https://discord.gg/8qzSGyekVJ) to stay updated with the latest news and development progress.
 
 ## Description
 
@@ -12,7 +12,7 @@ RePath was developed to address the need for high-performance pathfinding in a g
 
 - **A\* Algorithm**: A widely-used pathfinding algorithm known for its efficiency and accuracy in finding the shortest path.
 - **Bidirectional Search**: Enhances the A* algorithm by searching from both the start and goal nodes simultaneously, reducing the search space and improving speed.
-- **Precomputation**: Paths are precomputed and cached to provide near-instantaneous results for frequently requested paths.
+- **Precomputation**: Paths are precomputed and cached to provide near-instantaneous results right from the start.
 - **LRU Cache**: Least Recently Used (LRU) cache ensures efficient memory usage by storing only the most recently accessed paths.
 
 ### Why It's Fast
@@ -23,7 +23,7 @@ RePath's speed comes from its combination of precomputation, efficient search al
 
 - **A\* Pathfinding Algorithm**: Efficient and accurate pathfinding.
 - **Bidirectional Search**: Faster search by reducing the search space.
-- **Precomputation**: Speeds up repeated pathfinding queries.
+- **Precomputation**: Quickly precomputes random paths in parallel using [Rayon](https://crates.io/crates/rayon) and stores them in a cache.
 - **LRU Cache**: Efficient memory usage and quick access to recent paths.
 - **Scalable**: Handles large game worlds and numerous NPCs.
 
@@ -35,7 +35,7 @@ Add RePath to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-repath = "0.0.3"
+repath = "0.0.4"
 ```
 
 Make sure you have the OBJ file containing the navmesh in the same directory as your project.
