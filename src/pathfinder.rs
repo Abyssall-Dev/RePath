@@ -34,7 +34,7 @@ impl RePathfinder {
 
             if let Some(&goal_node_id) = nearby_nodes.choose(&mut rand::thread_rng()) {
                 if start_node_id != goal_node_id {
-                    graph.bi_directional_a_star(start_node_id, goal_node_id, &cache);
+                    graph.a_star(start_node_id, goal_node_id, &cache);
                 }
             }
 
@@ -54,6 +54,6 @@ impl RePathfinder {
         let start_node_id = self.graph.nearest_node(start_coords.0, start_coords.1, start_coords.2)?;
         let end_node_id = self.graph.nearest_node(end_coords.0, end_coords.1, end_coords.2)?;
 
-        self.graph.bi_directional_a_star(start_node_id, end_node_id, &self.cache)
+        self.graph.a_star(start_node_id, end_node_id, &self.cache)
     }
 }

@@ -25,6 +25,6 @@ fn test_pathfinding() {
     nearby_nodes.retain(|&id| id != start_node_id);
     let goal_node_id = *nearby_nodes.choose(&mut rand::thread_rng()).expect("No nearby nodes found");
 
-    let path = graph.bi_directional_a_star(start_node_id, goal_node_id, &cache);
+    let path = graph.a_star(start_node_id, goal_node_id, &cache);
     assert!(path.is_some());
 }

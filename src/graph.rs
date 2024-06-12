@@ -41,7 +41,7 @@ impl Graph {
         (dx * dx + dy * dy + dz * dz).sqrt()
     }
 
-    pub fn bi_directional_a_star(&self, start: usize, goal: usize, cache: &Mutex<LruCache<(usize, usize), Option<Vec<(Node, u64)>>>>) -> Option<Vec<(Node, u64)>> {
+    pub fn a_star(&self, start: usize, goal: usize, cache: &Mutex<LruCache<(usize, usize), Option<Vec<(Node, u64)>>>>) -> Option<Vec<(Node, u64)>> {
         let cache_key = (start, goal);
         {
             // Check if the path is already in cache
@@ -51,128 +51,67 @@ impl Graph {
             }
         }
     
-        let mut open_set_fwd = BinaryHeap::new();
-        let mut open_set_bwd = BinaryHeap::new();
-        let mut came_from_fwd: HashMap<usize, usize> = HashMap::new();
-        let mut came_from_bwd: HashMap<usize, usize> = HashMap::new();
-        let mut g_score_fwd: HashMap<usize, f64> = HashMap::new();
-        let mut g_score_bwd: HashMap<usize, f64> = HashMap::new();
-        let mut f_score_fwd: HashMap<usize, f64> = HashMap::new();
-        let mut f_score_bwd: HashMap<usize, f64> = HashMap::new();
-        let mut closed_set_fwd = HashSet::new();
-        let mut closed_set_bwd = HashSet::new();
+        let mut open_set = BinaryHeap::new();
+        let mut came_from: HashMap<usize, usize> = HashMap::new();
+        let mut g_score: HashMap<usize, f64> = HashMap::new();
+        let mut f_score: HashMap<usize, f64> = HashMap::new();
+        let mut closed_set = HashSet::new();
     
         for &node_id in self.nodes.keys() {
-            g_score_fwd.insert(node_id, f64::INFINITY);
-            g_score_bwd.insert(node_id, f64::INFINITY);
-            f_score_fwd.insert(node_id, f64::INFINITY);
-            f_score_bwd.insert(node_id, f64::INFINITY);
+            g_score.insert(node_id, f64::INFINITY);
+            f_score.insert(node_id, f64::INFINITY);
         }
     
-        // Calculate the exact middle point
-        let middle_node = self.nearest_node((self.nodes[&start].x + self.nodes[&goal].x) / 2.0,
-                                            (self.nodes[&start].y + self.nodes[&goal].y) / 2.0,
-                                            (self.nodes[&start].z + self.nodes[&goal].z) / 2.0)
-                            .expect("No nodes in the graph");
+        g_score.insert(start, 0.0);
+        f_score.insert(start, self.heuristic(start, goal));
     
-        g_score_fwd.insert(start, 0.0);
-        g_score_bwd.insert(goal, 0.0);
-        f_score_fwd.insert(start, self.heuristic(start, middle_node));
-        f_score_bwd.insert(goal, self.heuristic(goal, middle_node));
-    
-        open_set_fwd.push(State {
+        open_set.push(State {
             cost: 0.0,
             position: start,
         });
     
-        open_set_bwd.push(State {
-            cost: 0.0,
-            position: goal,
-        });
-    
-        while let (Some(State { cost: _cost_fwd, position: pos_fwd }), Some(State { cost: _cost_bwd, position: pos_bwd })) = (open_set_fwd.pop(), open_set_bwd.pop()) {
-            if closed_set_fwd.contains(&pos_bwd) || closed_set_bwd.contains(&pos_fwd) {
+        while let Some(State { cost: _cost, position: current }) = open_set.pop() {
+            if current == goal {
                 // Path found
-                let mut total_path_fwd = vec![];
-                let mut total_path_bwd = vec![];
-                let mut total_times_fwd = vec![0];
-                let mut total_times_bwd = vec![0];
-                let mut current = pos_fwd;
+                let mut total_path = vec![];
+                let mut total_times = vec![0];
                 let mut accumulated_time = 0.0;
+                let mut current = current;
     
-                while let Some(&next) = came_from_fwd.get(&current) {
+                while let Some(&next) = came_from.get(&current) {
                     let travel_cost = self.edges.get(&next).unwrap()
                         .iter()
                         .find(|edge| edge.to == current)
                         .unwrap().cost;
                     accumulated_time += travel_cost * 1000.0;
-                    total_times_fwd.push(accumulated_time as u64);
-                    total_path_fwd.push((self.nodes[&current], accumulated_time as u64));
+                    total_times.push(accumulated_time as u64);
+                    total_path.push((self.nodes[&current], accumulated_time as u64));
                     current = next;
                 }
     
-                total_path_fwd.push((self.nodes[&start], 0));
-                total_path_fwd.reverse();
+                total_path.push((self.nodes[&start], 0));
+                total_path.reverse();
     
-                current = pos_bwd;
-                accumulated_time = 0.0;
-    
-                while let Some(&next) = came_from_bwd.get(&current) {
-                    let travel_cost = self.edges.get(&next).unwrap()
-                        .iter()
-                        .find(|edge| edge.to == current)
-                        .unwrap().cost;
-                    accumulated_time += travel_cost * 1000.0;
-                    total_times_bwd.push(accumulated_time as u64);
-                    total_path_bwd.push((self.nodes[&current], accumulated_time as u64));
-                    current = next;
-                }
-    
-                total_path_bwd.push((self.nodes[&goal], 0));
-    
-                total_path_fwd.extend(total_path_bwd.iter().rev().cloned());
-                let result = Some(total_path_fwd.clone());
+                let result = Some(total_path.clone());
     
                 // Cache the result
                 let mut cache = cache.lock().unwrap();
                 cache.put(cache_key, result.clone());
     
-                // Also cache the inverted path
-                let inverted_path: Vec<(Node, u64)> = total_path_fwd.iter().rev().cloned().collect();
-                let inverted_cache_key = (goal, start);
-                cache.put(inverted_cache_key, Some(inverted_path));
-    
                 return result;
             }
     
-            closed_set_fwd.insert(pos_fwd);
-            closed_set_bwd.insert(pos_bwd);
+            closed_set.insert(current);
     
-            if let Some(neighbors) = self.edges.get(&pos_fwd) {
+            if let Some(neighbors) = self.edges.get(&current) {
                 for edge in neighbors {
-                    let tentative_g_score = g_score_fwd[&pos_fwd] + edge.cost;
+                    let tentative_g_score = g_score[&current] + edge.cost;
     
-                    if tentative_g_score < *g_score_fwd.get(&edge.to).unwrap_or(&f64::INFINITY) {
-                        came_from_fwd.insert(edge.to, pos_fwd);
-                        g_score_fwd.insert(edge.to, tentative_g_score);
-                        f_score_fwd.insert(edge.to, tentative_g_score + self.heuristic(edge.to, middle_node));
-                        open_set_fwd.push(State {
-                            cost: tentative_g_score,
-                            position: edge.to,
-                        });
-                    }
-                }
-            }
-    
-            if let Some(neighbors) = self.edges.get(&pos_bwd) {
-                for edge in neighbors {
-                    let tentative_g_score = g_score_bwd[&pos_bwd] + edge.cost;
-    
-                    if tentative_g_score < *g_score_bwd.get(&edge.to).unwrap_or(&f64::INFINITY) {
-                        came_from_bwd.insert(edge.to, pos_bwd);
-                        g_score_bwd.insert(edge.to, tentative_g_score);
-                        f_score_bwd.insert(edge.to, tentative_g_score + self.heuristic(edge.to, middle_node));
-                        open_set_bwd.push(State {
+                    if tentative_g_score < *g_score.get(&edge.to).unwrap_or(&f64::INFINITY) {
+                        came_from.insert(edge.to, current);
+                        g_score.insert(edge.to, tentative_g_score);
+                        f_score.insert(edge.to, tentative_g_score + self.heuristic(edge.to, goal));
+                        open_set.push(State {
                             cost: tentative_g_score,
                             position: edge.to,
                         });
