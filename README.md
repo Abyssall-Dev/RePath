@@ -63,6 +63,32 @@ fn main() {
 }
 ```
 
+### Benchmark
+
+The following graphs show the performance of RePath in pathfinding scenarios. The benchmark was conducted on i7-9700K CPU with 16GB DDR4 RAM with these settings:
+
+- Navmesh Size: 4000 x 4000 meters
+- Navmesh Vertices: 40 401
+- Navmesh Faces: 80 000
+- Precompute Radius: 3 000 meters
+- Total Precompute Pairs: 100 000
+- Cache Capacity: 100 000
+- Use Precomputed Cache: true
+
+## Distance vs Time
+
+![Distance vs Time](img/bench_distance_vs_time_all.png)
+
+## Distance vs Time (Distances under 50 meters)
+
+![Distance vs Time (Distances under 50 meters)](img/bench_distance_vs_time_under_50m.png)
+
+Results can vary a lot, depending if the path was already cached or not. In short, the more paths were found, the faster the pathfinding will be in the future.
+
+Precomputation is experimental right now and it seems the benefits are not that big, because on large maps it's very unlikely that the same path will be found again. However, it can be useful for small maps or navmeshes with smaller number of vertices and faces. For short distances you can get a sub-millisecond pathfinding time.
+
+While the precomputation is multithreaded, the pathfinding itself is not. This is because the pathfinding is usually very fast and multithreading it would not bring any benefits for short distances. However if you need to find paths for very long distances, you can calculate middle point between start and end and then calculate paths from start to middle and from middle to end in parallel.
+
 ### License
 
 RePath is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
