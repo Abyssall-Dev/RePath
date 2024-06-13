@@ -1,5 +1,9 @@
 # RePath
 
+[![Crate](https://img.shields.io/crates/v/repath.svg?label=crate)](https://crates.io/crates/repath)
+[![Docs](https://docs.rs/repath/badge.svg)](https://docs.rs/repath/0.0.6/repath/)
+[![Rust](https://github.com/Abyssall-Dev/RePath/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/Abyssall-Dev/RePath/actions/workflows/rust.yml)
+
 RePath is a fast and efficient pathfinding library. It leverages the A* algorithm to provide rapid and precise pathfinding solution on OBJ navmeshes, essential for managing large numbers of NPCs in real-time environments.
 
 RePath was developed for [Respark](https://playrespark.com/), an upcoming open world MMO shooter. Respark combines intense combat, strategic gameplay, and a vast, dynamic world to explore. Join our community on [Discord](https://discord.gg/8qzSGyekVJ) to stay updated with the latest news and development progress.
