@@ -1,18 +1,12 @@
 # RePath
 
-RePath is a fast and efficient pathfinding library specifically designed for MMO game servers. It leverages the A* algorithm to provide rapid and precise pathfinding solution, essential for managing large numbers of NPCs and players in real-time environments.
+RePath is a fast and efficient pathfinding library. It leverages the A* algorithm to provide rapid and precise pathfinding solution on OBJ navmeshes, essential for managing large numbers of NPCs in real-time environments.
 
 RePath was developed for [Respark](https://playrespark.com/), an upcoming open world MMO shooter. Respark combines intense combat, strategic gameplay, and a vast, dynamic world to explore. Join our community on [Discord](https://discord.gg/8qzSGyekVJ) to stay updated with the latest news and development progress.
 
 ## Description
 
-RePath was developed to address the need for high-performance pathfinding in a game server written for the upcoming open world MMO shooter called [Respark](https://playrespark.com/). Given the complexity and size of game worlds, pathfinding can be a significant bottleneck. RePath optimizes this process through a combination of precomputation, caching, and advanced search algorithms, ensuring quick and accurate pathfinding even in demanding scenarios.
-
-### How It Works
-
-- **A\* Algorithm**: A widely-used pathfinding algorithm known for its efficiency and accuracy in finding the shortest path.
-- **Precomputation**: Paths are precomputed and cached to provide near-instantaneous results right from the start.
-- **LRU Cache**: Least Recently Used (LRU) cache ensures efficient memory usage by storing only the most recently accessed paths.
+RePath was developed to address the need for high-performance pathfinding in an MMO game server. Given the complexity and size of game worlds, pathfinding can be a significant bottleneck. RePath optimizes this process through a combination of precomputation, caching, and advanced search algorithms, ensuring quick and accurate pathfinding even in demanding scenarios. It can also be used in other applications requiring efficient pathfinding, such as robotics, simulation, and AI.
 
 ### Why It's Fast
 
@@ -33,7 +27,7 @@ Add RePath to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-repath = "0.0.5"
+repath = "0.0.6"
 ```
 
 Make sure you have the OBJ file containing the navmesh in the same directory as your project.
@@ -54,7 +48,7 @@ fn main() {
     };
 
     // Create a new RePathfinder instance
-    let pathfinder = RePathfinder::new("navmesh_varied.obj", settings);
+    let pathfinder = RePathfinder::new(settings);
 
     // Define start and end coordinates for pathfinding
     let start_coords = (0.0, 0.0, 0.0);

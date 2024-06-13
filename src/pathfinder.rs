@@ -14,8 +14,8 @@ pub struct RePathfinder {
 }
 
 impl RePathfinder {
-    pub fn new(navmesh_filename: &str, settings: RePathSettings) -> Self {
-        let graph = parse_obj(navmesh_filename);
+    pub fn new(settings: RePathSettings) -> Self {
+        let graph = parse_obj(&settings.navmesh_filename);
         let cache_capacity = NonZeroUsize::new(settings.cache_capacity).expect("Capacity must be non-zero");
         let cache = Arc::new(Mutex::new(LruCache::new(cache_capacity)));
 
