@@ -86,18 +86,13 @@ impl RePathfinder {
         }
         points.push(end_coords);
     
-        // Debug intermediate points
-        println!("Intermediate points: {:?}", points);
-    
         // Create tasks for each segment
         let segments: Vec<_> = points.windows(2).collect();
         let paths: Vec<_> = segments.into_par_iter()
             .map(|segment| {
-                println!("Segment: {:?}", segment);
                 let start_node_id = self.graph.nearest_node(segment[0].0, segment[0].1, segment[0].2)?;
                 let end_node_id = self.graph.nearest_node(segment[1].0, segment[1].1, segment[1].2)?;
                 let path = self.graph.a_star(start_node_id, end_node_id, &self.cache);
-                println!("Path for segment: {:?}", path);
                 path
             })
             .collect::<Vec<_>>();
