@@ -30,12 +30,20 @@ mod tests {
 
         // Define start and end coordinates for pathfinding
         let start_coords = (0.0, 0.0, 0.0);
-        let end_coords = (10.0, 10.0, 10.0);
+        let end_coords = (40.0, 40.0, 40.0);
 
-        let path = pathfinder.find_path(start_coords, end_coords);
+        // Find path using a single thread
+        let start = std::time::Instant::now();
+        let path1 = pathfinder.find_path(start_coords, end_coords);
+        println!("Time to find path singlethreaded: {:?}", start.elapsed());
 
-        println!("{:?}", path);
+        assert!(path1.is_some());
 
-        assert!(path.is_some());
+        // Find path using multiple threads
+        let start = std::time::Instant::now();
+        let path2 = pathfinder.find_path_multithreaded(start_coords, end_coords, 2);
+        println!("Time to find path multithreaded: {:?}", start.elapsed());
+
+        assert!(path2.is_some());
     }
 }

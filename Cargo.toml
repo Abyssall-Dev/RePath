@@ -1,9 +1,9 @@
 [package]
 name = "repath"
-version = "0.0.6"
+version = "0.0.7"
 edition = "2021"
 authors = ["Jaroslav Patočka <patockajaroslav@gmail.com>"]
-description = "A fast pathfinding library using A* algorithm, caching and precomputation."
+description = "A fast pathfinding library using A* algorithm, caching, precomputation and path segmentation with concurrent pathfinding."
 readme = "README.md"
 keywords = ["pathfinding", "game", "server", "gameserver", "navmesh"]
 categories = ["game-development", "algorithms", "data-structures"]
