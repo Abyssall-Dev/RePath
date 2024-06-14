@@ -22,6 +22,7 @@ RePath's speed comes from its combination of precomputation, efficient search al
 - **Precomputation**: Quickly precomputes random paths in parallel using [Rayon](https://crates.io/crates/rayon) and stores them in a cache.
 - **LRU Cache**: Efficient memory usage and quick access to recent paths.
 - **Scalable**: Handles large game worlds and numerous NPCs.
+- **Multithreading**: Utilizes multiple threads for both precomputation and pathfinding.
 
 ## Usage
 
@@ -31,7 +32,7 @@ Add RePath to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-repath = "0.0.6"
+repath = "0.0.7"
 ```
 
 Make sure you have the OBJ file containing the navmesh in the same directory as your project.
@@ -58,8 +59,17 @@ fn main() {
     let start_coords = (0.0, 0.0, 0.0);
     let end_coords = (10.0, 10.0, 10.0);
 
-    // Find a path from start to end coordinates
+    // Find a path from start to end coordinates using single thread (good for short distances)
     if let Some(path) = pathfinder.find_path(start_coords, end_coords) {
+        println!("Found path: {:?}", path);
+    } else {
+        println!("No path found.");
+    }
+
+    // Find a path from start to end coordinates using multiple threads (good for long distances)
+    // This should not be used for short distances as it can be slower than single thread because of segmentation and multithreading overhead
+    let segment_count = 2; // Splits the path into two segments and calculates them in parallel
+    if let Some(path) = pathfinder.find_path_multithreaded(start_coords, end_coords, segment_count) {
         println!("Found path: {:?}", path);
     } else {
         println!("No path found.");
@@ -67,7 +77,7 @@ fn main() {
 }
 ```
 
-### Benchmark
+### Benchmark - Single Threaded Pathfinding
 
 The following graphs show the performance of RePath in pathfinding scenarios. The benchmark was conducted on i7-9700K CPU with 16GB DDR4 RAM with these settings:
 
@@ -91,7 +101,7 @@ Results can vary a lot, depending if the path was already cached or not. In shor
 
 Precomputation is experimental right now and it seems the benefits are not that big, because on large maps it's very unlikely that the same path will be found again. However, it can be useful for small maps or navmeshes with smaller number of vertices and faces. For short distances you can get a sub-millisecond pathfinding time.
 
-While the precomputation is multithreaded, the pathfinding itself is not. This is because the pathfinding is usually very fast and multithreading it would not bring any benefits for short distances. However if you need to find paths for very long distances, you can calculate middle point between start and end and then calculate paths from start to middle and from middle to end in parallel.
+You can use `find_path_multithreaded` method to calculate paths in parallel. This is useful for long distances, but it's not recommended for short distances because of the overhead of splitting the path into segments and calculating them in parallel.
 
 ### License
 
