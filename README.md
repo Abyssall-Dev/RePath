@@ -1,7 +1,7 @@
 # RePath
 
 [![Crate](https://img.shields.io/crates/v/repath.svg?label=crate)](https://crates.io/crates/repath)
-[![Docs](https://docs.rs/repath/badge.svg)](https://docs.rs/repath/0.0.7/repath/)
+[![Docs](https://docs.rs/repath/badge.svg)](https://docs.rs/repath/0.0.9/repath/)
 [![Rust](https://github.com/Abyssall-Dev/RePath/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/Abyssall-Dev/RePath/actions/workflows/rust.yml)
 
 RePath is a fast and efficient pathfinding library. It leverages the A* algorithm to provide rapid and precise pathfinding solution on OBJ navmeshes, essential for managing large numbers of NPCs in real-time environments.
@@ -32,7 +32,7 @@ Add RePath to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-repath = "0.0.8"
+repath = "0.0.9"
 ```
 
 Make sure you have the OBJ file containing the navmesh in the same directory as your project.

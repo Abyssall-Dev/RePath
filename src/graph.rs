@@ -44,18 +44,16 @@ impl Graph {
 
     pub fn a_star(&self, start: usize, goal: usize, cache: &Mutex<LruCache<(usize, usize), Option<Path>>>) -> Option<Path> {
         let cache_key = (start, goal);
-        {
-            // Check if the path is already in cache
-            let mut cache = cache.lock().unwrap();
-            if let Some(result) = cache.get(&cache_key) {
-                return result.clone();
-            }
+
+        // Check if the path is already in cache
+        if let Some(result) = cache.lock().unwrap().get(&cache_key) {
+            return result.clone();
         }
 
         let mut open_set = BinaryHeap::new();
-        let mut came_from: HashMap<usize, usize> = HashMap::new();
-        let mut g_score: HashMap<usize, f64> = self.nodes.keys().map(|&k| (k, f64::INFINITY)).collect();
-        let mut f_score: HashMap<usize, f64> = self.nodes.keys().map(|&k| (k, f64::INFINITY)).collect();
+        let mut came_from = HashMap::new();
+        let mut g_score = HashMap::new();
+        let mut f_score = HashMap::new();
         let mut closed_set = HashSet::new();
 
         g_score.insert(start, 0.0);
@@ -66,7 +64,7 @@ impl Graph {
             position: start,
         });
 
-        while let Some(State { cost: _cost, position: current }) = open_set.pop() {
+        while let Some(State { cost: _, position: current }) = open_set.pop() {
             if current == goal {
                 // Path found
                 let mut total_path = vec![self.nodes[&current]];
@@ -90,10 +88,7 @@ impl Graph {
                 let result = Some(total_path.clone());
 
                 // Cache the result
-                {
-                    let mut cache = cache.lock().unwrap();
-                    cache.put(cache_key, result.clone());
-                }
+                cache.lock().unwrap().put(cache_key, result.clone());
 
                 return result;
             }
@@ -102,14 +97,19 @@ impl Graph {
 
             if let Some(neighbors) = self.edges.get(&current) {
                 for edge in neighbors {
-                    let tentative_g_score = g_score[&current] + edge.cost;
+                    if closed_set.contains(&edge.to) {
+                        continue;
+                    }
 
-                    if tentative_g_score < g_score[&edge.to] {
+                    let tentative_g_score = g_score.get(&current).unwrap_or(&f64::INFINITY) + edge.cost;
+
+                    if tentative_g_score < *g_score.get(&edge.to).unwrap_or(&f64::INFINITY) {
                         came_from.insert(edge.to, current);
                         g_score.insert(edge.to, tentative_g_score);
-                        f_score.insert(edge.to, tentative_g_score + self.heuristic(edge.to, goal));
+                        let f_score_value = tentative_g_score + self.heuristic(edge.to, goal);
+                        f_score.insert(edge.to, f_score_value);
                         open_set.push(State {
-                            cost: tentative_g_score + self.heuristic(edge.to, goal),
+                            cost: f_score_value,
                             position: edge.to,
                         });
                     }
@@ -118,22 +118,19 @@ impl Graph {
         }
 
         // Cache the non-result, so that it doesn't try to find path next time
-        {
-            let mut cache = cache.lock().unwrap();
-            cache.put(cache_key, None);
-        }
+        cache.lock().unwrap().put(cache_key, None);
 
         None
     }
 
     pub fn nearest_node(&self, x: f64, y: f64, z: f64) -> Option<usize> {
         self.nodes.iter()
-            .min_by(|(_, a), (_, b)| {
-                let da = distance(&(a.x, a.y, a.z), &(x, y, z));
-                let db = distance(&(b.x, b.y, b.z), &(x, y, z));
-                da.partial_cmp(&db).unwrap()
+            .map(|(&id, node)| {
+                let d = distance(&(node.x, node.y, node.z), &(x, y, z));
+                (d, id)
             })
-            .map(|(&id, _)| id)
+            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
+            .map(|(_, id)| id)
     }
 
     pub fn random_node(&self) -> Option<usize> {
@@ -155,7 +152,7 @@ pub struct State {
 
 impl Ord for State {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.cost.partial_cmp(&self.cost).unwrap()
+        other.cost.partial_cmp(&self.cost).unwrap_or(Ordering::Equal)
     }
 }
 

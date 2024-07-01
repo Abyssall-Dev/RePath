@@ -37,6 +37,9 @@ mod tests {
         let start = std::time::Instant::now();
         let path1 = pathfinder.find_path(start_coords, end_coords);
         println!("Time to find path singlethreaded: {:?}", start.elapsed());
+        if path1.clone().is_some() {
+            println!("Path found: {:?}", path1.clone().unwrap());
+        }
 
         assert!(path1.is_some());
 

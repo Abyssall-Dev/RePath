@@ -1,6 +1,6 @@
 [package]
 name = "repath"
-version = "0.0.8"
+version = "0.0.9"
 edition = "2021"
 authors = ["Jaroslav Patočka <patockajaroslav@gmail.com>"]
 description = "A fast pathfinding library using A* algorithm, caching, precomputation and path segmentation with concurrent pathfinding."
