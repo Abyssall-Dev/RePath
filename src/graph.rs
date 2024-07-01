@@ -6,6 +6,7 @@ use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::node::Node;
 use crate::edge::Edge;
+use crate::path::Path;
 use crate::utils::distance;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -41,7 +42,7 @@ impl Graph {
         (dx * dx + dy * dy + dz * dz).sqrt()
     }
 
-    pub fn a_star(&self, start: usize, goal: usize, cache: &Mutex<LruCache<(usize, usize), Option<Vec<(Node, u64)>>>>) -> Option<Vec<(Node, u64)>> {
+    pub fn a_star(&self, start: usize, goal: usize, cache: &Mutex<LruCache<(usize, usize), Option<Path>>>) -> Option<Path> {
         let cache_key = (start, goal);
         {
             // Check if the path is already in cache
@@ -50,34 +51,29 @@ impl Graph {
                 return result.clone();
             }
         }
-    
+
         let mut open_set = BinaryHeap::new();
         let mut came_from: HashMap<usize, usize> = HashMap::new();
-        let mut g_score: HashMap<usize, f64> = HashMap::new();
-        let mut f_score: HashMap<usize, f64> = HashMap::new();
+        let mut g_score: HashMap<usize, f64> = self.nodes.keys().map(|&k| (k, f64::INFINITY)).collect();
+        let mut f_score: HashMap<usize, f64> = self.nodes.keys().map(|&k| (k, f64::INFINITY)).collect();
         let mut closed_set = HashSet::new();
-    
-        for &node_id in self.nodes.keys() {
-            g_score.insert(node_id, f64::INFINITY);
-            f_score.insert(node_id, f64::INFINITY);
-        }
-    
+
         g_score.insert(start, 0.0);
         f_score.insert(start, self.heuristic(start, goal));
-    
+
         open_set.push(State {
             cost: 0.0,
             position: start,
         });
-    
+
         while let Some(State { cost: _cost, position: current }) = open_set.pop() {
             if current == goal {
                 // Path found
-                let mut total_path = vec![];
+                let mut total_path = vec![self.nodes[&current]];
                 let mut total_times = vec![0];
                 let mut accumulated_time = 0.0;
                 let mut current = current;
-    
+
                 while let Some(&next) = came_from.get(&current) {
                     let travel_cost = self.edges.get(&next).unwrap()
                         .iter()
@@ -85,49 +81,50 @@ impl Graph {
                         .unwrap().cost;
                     accumulated_time += travel_cost * 1000.0;
                     total_times.push(accumulated_time as u64);
-                    total_path.push((self.nodes[&current], accumulated_time as u64));
+                    total_path.push(self.nodes[&next]);
                     current = next;
                 }
-    
-                total_path.push((self.nodes[&start], 0));
+
                 total_path.reverse();
-    
+
                 let result = Some(total_path.clone());
-    
+
                 // Cache the result
-                let mut cache = cache.lock().unwrap();
-                cache.put(cache_key, result.clone());
-    
+                {
+                    let mut cache = cache.lock().unwrap();
+                    cache.put(cache_key, result.clone());
+                }
+
                 return result;
             }
-    
+
             closed_set.insert(current);
-    
+
             if let Some(neighbors) = self.edges.get(&current) {
                 for edge in neighbors {
                     let tentative_g_score = g_score[&current] + edge.cost;
-    
-                    if tentative_g_score < *g_score.get(&edge.to).unwrap_or(&f64::INFINITY) {
+
+                    if tentative_g_score < g_score[&edge.to] {
                         came_from.insert(edge.to, current);
                         g_score.insert(edge.to, tentative_g_score);
                         f_score.insert(edge.to, tentative_g_score + self.heuristic(edge.to, goal));
                         open_set.push(State {
-                            cost: tentative_g_score,
+                            cost: tentative_g_score + self.heuristic(edge.to, goal),
                             position: edge.to,
                         });
                     }
                 }
             }
         }
-    
-        let result = None;
-    
-        // Cache the result
-        let mut cache = cache.lock().unwrap();
-        cache.put(cache_key, result.clone());
-    
-        result
-    }    
+
+        // Cache the non-result, so that it doesn't try to find path next time
+        {
+            let mut cache = cache.lock().unwrap();
+            cache.put(cache_key, None);
+        }
+
+        None
+    }
 
     pub fn nearest_node(&self, x: f64, y: f64, z: f64) -> Option<usize> {
         self.nodes.iter()

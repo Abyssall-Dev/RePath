@@ -32,7 +32,7 @@ Add RePath to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-repath = "0.0.7"
+repath = "0.0.8"
 ```
 
 Make sure you have the OBJ file containing the navmesh in the same directory as your project.

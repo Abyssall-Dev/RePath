@@ -1,5 +1,4 @@
 use crate::graph::Graph;
-use crate::node::Node;
 use crate::settings::RePathSettings;
 use crate::utils::{nodes_within_radius, parse_obj};
 use lru::LruCache;
@@ -7,11 +6,12 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::num::NonZeroUsize;
 use std::sync::{Arc, Mutex};
 use rand::prelude::*;
+use crate::path::Path;
 
 /// The RePathfinder struct holds the graph and cache used for pathfinding.
 pub struct RePathfinder {
     graph: Graph,
-    cache: Arc<Mutex<LruCache<(usize, usize), Option<Vec<(Node, u64)>>>>>,
+    cache: Arc<Mutex<LruCache<(usize, usize), Option<Path>>>>,
 }
 
 impl RePathfinder {
@@ -56,7 +56,7 @@ impl RePathfinder {
 
     /// Finds a path from start_coords to end_coords using a single thread.
     /// This function uses the A* algorithm and the precomputed cache for efficient pathfinding.
-    pub fn find_path(&self, start_coords: (f64, f64, f64), end_coords: (f64, f64, f64)) -> Option<Vec<(Node, u64)>> {
+    pub fn find_path(&self, start_coords: (f64, f64, f64), end_coords: (f64, f64, f64)) -> Option<Path> {
         let start_node_id = self.graph.nearest_node(start_coords.0, start_coords.1, start_coords.2)?;
         let end_node_id = self.graph.nearest_node(end_coords.0, end_coords.1, end_coords.2)?;
 
@@ -68,7 +68,7 @@ impl RePathfinder {
     ///
     /// Note: Use this function only for long paths. For shorter paths, the overhead of multithreading may result in slower performance compared to the single-threaded version.
     /// Additionally, the resulting path may be slightly different due to the segmentation and concurrent processing.
-    pub fn find_path_multithreaded(&self, start_coords: (f64, f64, f64), end_coords: (f64, f64, f64), segment_count: u8) -> Option<Vec<(Node, u64)>> {
+    pub fn find_path_multithreaded(&self, start_coords: (f64, f64, f64), end_coords: (f64, f64, f64), segment_count: u8) -> Option<Path> {
         if segment_count <= 1 {
             return self.find_path(start_coords, end_coords);
         }
