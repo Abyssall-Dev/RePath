@@ -4,13 +4,13 @@ use std::cmp::Ordering;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Node {
     pub id: usize,
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl Node {
-    pub fn new(id: usize, x: f64, y: f64, z: f64) -> Self {
+    pub fn new(id: usize, x: f32, y: f32, z: f32) -> Self {
         Node { id, x, y, z }
     }
 }
