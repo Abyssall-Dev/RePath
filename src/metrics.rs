@@ -5,8 +5,8 @@ use crate::settings::RePathSettings;
 pub struct Metrics {
     #[serde(flatten)]
     pub settings: RePathSettings,
-    pub precomputation_time: f64,
-    pub pathfinding_time: f64,
+    pub precomputation_time: f32,
+    pub pathfinding_time: f32,
     pub total_paths_precomputed: usize,
 }
 

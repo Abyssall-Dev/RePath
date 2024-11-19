@@ -32,7 +32,7 @@ Add RePath to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-repath = "0.0.9"
+repath = "0.1.0"
 ```
 
 Make sure you have the OBJ file containing the navmesh in the same directory as your project.
@@ -45,10 +45,9 @@ use repath::{RePathfinder, settings::RePathSettings};
 fn main() {
     // Create a new RePathSettings instance with custom settings
     let settings = RePathSettings {
-        navmesh_filename: "navmesh_varied.obj".to_string(), // Path to the navmesh file in Wavefront OBJ format
-        precompute_radius: 25.0, // Higher this value, the longer it takes to precompute paths but faster pathfinding for long distances
-        total_precompute_pairs: 1000, // Higher this value, the longer it takes to precompute paths but faster pathfinding
-        cache_capacity: 1000, // Higher this value, the more paths can be stored in cache but more memory usage
+        navmesh_filename: "NavMesh.obj".to_string(), // Path to the navmesh file in Wavefront OBJ format
+        precompute_radius: 10000.0, // Higher this value, the longer it takes to precompute paths but faster pathfinding for long distances
+        total_precompute_pairs: 5000, // Higher this value, the longer it takes to precompute paths but faster pathfinding
         use_precomputed_cache: true, // Set to false to disable precomputation of paths
     };
 
@@ -56,8 +55,8 @@ fn main() {
     let pathfinder = RePathfinder::new(settings);
 
     // Define start and end coordinates for pathfinding
-    let start_coords = (0.0, 0.0, 0.0);
-    let end_coords = (10.0, 10.0, 10.0);
+    let start_coords = (-1976.0, 5928.0, -2076.629);
+    let end_coords = (-1976.0, 4940.0, -2076.629);
 
     // Find a path from start to end coordinates using single thread (good for short distances)
     if let Some(path) = pathfinder.find_path(start_coords, end_coords) {
